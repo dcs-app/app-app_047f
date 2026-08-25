@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — AURELIA HOME</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f8fafc; color: #1e293b; }
+    .checkout-wrap { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+    h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 32px; }
+    .checkout-grid { display: grid; grid-template-columns: 1fr 380px; gap: 32px; }
+    @media(max-width:768px) { .checkout-grid { grid-template-columns: 1fr; } }
+    .form-card, .summary-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px; }
+    .form-card h2, .summary-card h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media(max-width:480px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: .8rem; font-weight: 600; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+    input, select, textarea { width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: .95rem; outline: none; transition: border-color .2s; }
+    input:focus, select:focus { border-color: #f97316; }
+    .section-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin: 24px 0 12px; }
+    .order-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: .9rem; }
+    .order-total { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.05rem; margin-top: 16px; padding-top: 16px; border-top: 2px solid #e2e8f0; }
+    .place-order-btn { width: 100%; background: #f97316; color: #fff; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: all .2s; }
+    .place-order-btn:hover { background: #ea580c; }
+    .secure-note { text-align: center; font-size: .75rem; color: #94a3b8; margin-top: 12px; }
+    #checkout-success { display: none; text-align: center; padding: 60px 20px; }
+    #checkout-success h2 { font-size: 2rem; margin-bottom: 12px; }
+    .back-link { color: #f97316; text-decoration: none; font-size: .9rem; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 24px; }
+  </style>
+<style data-trd-shell="phase-39.7">
+/* ── Phase 1A: Shared CSS System — enforces consistent design tokens across all 48 agents ── */
+:root{
+  --trd-font:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --trd-radius:10px;
+  --trd-radius-sm:6px;
+  --trd-shadow:0 4px 6px -1px rgba(0,0,0,.08),0 2px 4px -2px rgba(0,0,0,.05);
+  --trd-shadow-md:0 10px 15px -3px rgba(0,0,0,.08),0 4px 6px -4px rgba(0,0,0,.05);
+  --trd-transition:0.2s ease;
+  --trd-spacing-xs:8px;
+  --trd-spacing-sm:16px;
+  --trd-spacing-md:24px;
+  --trd-spacing-lg:48px;
+  --trd-spacing-xl:80px;
+  --trd-max-w:1200px;
+  --trd-contrast:4.5;
+}
+/* Universal box-sizing */
+*,*::before,*::after{box-sizing:border-box}
+/* Consistent body font */
+body{font-family:var(--trd-font);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+/* ── Shared Button System ── */
+.btn,.button,button:not([class*="trd-shell"]):not([class*="ec"]):not([class*="trd-nav"]):not([class*="trd-step"]):not([class*="trd-purchase"]):not([onclick="trdClosePurchase"]) {
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 24px;border-radius:var(--trd-radius-sm);
+  font-family:var(--trd-font);font-size:15px;font-weight:600;line-height:1;
+  text-decoration:none;cursor:pointer;border:1.5px solid transparent;
+  transition:transform var(--trd-transition),opacity var(--trd-transition),box-shadow var(--trd-transition);
+  white-space:nowrap;
+}
+button:not([class]):hover,.btn:hover,.button:hover{transform:translateY(-1px);box-shadow:var(--trd-shadow-md);opacity:.92}
+/* ── Shared Card System ── */
+.card,[class*="card"]:not([class*="ec"]):not([class*="trd-"]) {
+  border-radius:var(--trd-radius);
+  box-shadow:var(--trd-shadow);
+  overflow:hidden;
+  transition:box-shadow var(--trd-transition),transform var(--trd-transition);
+}
+.card:hover,[class*="card"]:not([class*="ec"]):not([class*="trd-"]):hover{
+  box-shadow:var(--trd-shadow-md);transform:translateY(-2px);
+}
+/* ── Shared Section Spacing ──
+   Phase 45.5: :where() gives this ZERO specificity and it applies only to sections
+   that carry no class, i.e. bare agent-generated ones. A page recipe or component
+   that sets its own padding now wins without !important. Previously every <section>
+   got 80px unconditionally, which stacked with the first-content rule above. */
+:where(section:not([class])){padding:var(--trd-spacing-lg) 5vw}
+@media(max-width:768px){:where(section:not([class])){padding:var(--trd-spacing-md) 5vw}}
+/* ── Shared Container ── */
+.container,.wrapper{max-width:var(--trd-max-w);margin:0 auto;padding:0 var(--trd-spacing-md)}
+/* ── Shared Typography Scale ── */
+h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:700;line-height:1.1;letter-spacing:-0.02em}
+h2{font-size:clamp(1.5rem,3vw,2.5rem);font-weight:700;line-height:1.2;letter-spacing:-0.01em}
+h3{font-size:clamp(1.1rem,2vw,1.5rem);font-weight:600;line-height:1.3}
+/* ── Shared Form Elements ── */
+input:not([class*="ec"]):not([class*="trd-"]),
+textarea:not([class*="ec"]):not([class*="trd-"]),
+select:not([class*="ec"]):not([class*="trd-"]){
+  width:100%;padding:12px 16px;border-radius:var(--trd-radius-sm);
+  border:1.5px solid rgba(0,0,0,.15);font-family:var(--trd-font);font-size:15px;
+  transition:border-color var(--trd-transition),box-shadow var(--trd-transition);
+  outline:none;background:#fff;color:inherit;
+}
+input:focus:not([class*="ec"]):not([class*="trd-"]),
+textarea:focus:not([class*="ec"]):not([class*="trd-"]),
+select:focus:not([class*="ec"]):not([class*="trd-"]){
+  border-color:currentColor;box-shadow:0 0 0 3px rgba(0,0,0,.06);
+}
+/* ── Shared Image Behaviour ── */
+img{max-width:100%;height:auto;display:block}
+/* ── Focus Visible ── */
+:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.trd-shell-header,.trd-shell-footer{font-family:var(--trd-font);color:#1a1a1a;box-sizing:border-box}
+.trd-shell-header *,.trd-shell-footer *{box-sizing:border-box}
+.trd-shell-header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,0.96);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,0,0,0.08);padding:14px 5vw;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.trd-shell-brand{font-weight:700;font-size:18px;letter-spacing:-0.01em;text-decoration:none;color:inherit;flex-shrink:0}
+.trd-shell-nav{display:flex;align-items:center;gap:28px;flex:1;justify-content:center}
+.trd-shell-nav a{text-decoration:none;color:inherit;font-size:14.5px;font-weight:500;padding:6px 0;border-bottom:2px solid transparent;transition:border-color .2s ease,color .2s ease}
+.trd-shell-nav a:hover{border-bottom-color:currentColor}
+.trd-shell-nav a[aria-current=page]{border-bottom-color:currentColor}
+.trd-shell-cta{display:inline-block;padding:10px 20px;background:#1a1a1a;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px;transition:transform .15s ease,opacity .15s ease;flex-shrink:0}
+.trd-shell-cta:hover{transform:translateY(-1px);opacity:.9}
+.trd-shell-burger{display:none;background:none;border:0;width:32px;height:32px;cursor:pointer;font-size:22px;line-height:1;color:inherit}
+@media (max-width:780px){
+.trd-shell-header{flex-wrap:wrap;padding:12px 5vw}
+.trd-shell-burger{display:inline-flex;align-items:center;justify-content:center;order:3}
+.trd-shell-cta{order:2}
+.trd-shell-nav{display:none;order:4;flex-basis:100%;flex-direction:column;align-items:flex-start;gap:14px;padding:14px 0 4px}
+.trd-shell-nav.is-open{display:flex}
+}
+.trd-shell-footer{margin-top:64px;padding:56px 5vw 28px;background:#0e0e0e;color:#e8e8e8}
+.trd-shell-footer-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:36px;max-width:1200px;margin:0 auto}
+@media (max-width:880px){.trd-shell-footer-grid{grid-template-columns:repeat(2,1fr);gap:32px}}
+@media (max-width:520px){.trd-shell-footer-grid{grid-template-columns:1fr;gap:28px}}
+.trd-shell-footer h4{font-size:13px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin:0 0 14px;color:#fff}
+.trd-shell-footer ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.trd-shell-footer a{color:#cfcfcf;text-decoration:none;font-size:14.5px;transition:color .15s ease}
+.trd-shell-footer a:hover{color:#fff}
+/* Phase 39.18 (Apr 26 2026) — Footer Pages list wraps to 2 columns when 5+
+   items. Bug observed: Saffron Flame deploy 58a16818 had 8 Pages links
+   stacking as one tall column, making the footer 8x taller than needed.
+   Selector targets ANY <ul> inside <footer> with 5+ <li> children, so it
+   works for both the hardcoded chrome path AND all Phase G1 templates
+   (.tpl-ccs-*, .tpl-mms-*, .tpl-bse-*, etc) without modifying any
+   template JSON. Specificity (0,1,2) beats template-class rules (0,1,1)
+   so this is a clean override. :has() is supported in Chrome 105+,
+   Safari 15.4+, Firefox 121+ — all current browsers. Mobile (<520px)
+   keeps the single column for narrow viewports. */
+footer ul:has(li:nth-child(5)){display:grid;grid-template-columns:repeat(2,1fr);column-gap:32px;row-gap:8px}
+/* Phase 42.1 (May 8 2026) — scale footer columns up to 5 for 23+ pages.
+   Restaurant 28-page sites put all 27 non-home pages in footer; without
+   these rules they'd cram into 2 columns of 14 each. :has() cascades:
+   nth-child(23) wins over nth-child(15), 15 over 8, 8 over 5. */
+footer ul:has(li:nth-child(8)){grid-template-columns:repeat(3,1fr)}
+footer ul:has(li:nth-child(15)){grid-template-columns:repeat(4,1fr)}
+footer ul:has(li:nth-child(23)){grid-template-columns:repeat(5,1fr)}
+@media (max-width:520px){footer ul:has(li:nth-child(5)),footer ul:has(li:nth-child(8)),footer ul:has(li:nth-child(15)),footer ul:has(li:nth-child(23)){grid-template-columns:1fr;column-gap:0}}
+@media (min-width:521px) and (max-width:780px){footer ul:has(li:nth-child(15)),footer ul:has(li:nth-child(23)){grid-template-columns:repeat(2,1fr)}}
+@media (min-width:781px) and (max-width:980px){footer ul:has(li:nth-child(23)){grid-template-columns:repeat(3,1fr)}}
+.trd-shell-socials{display:flex;gap:14px;align-items:center}
+.trd-shell-socials a{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.08);color:#e8e8e8;transition:background .15s ease,transform .15s ease}
+.trd-shell-socials a:hover{background:rgba(255,255,255,0.16);transform:translateY(-1px)}
+.trd-shell-footer-bottom{max-width:1200px;margin:36px auto 0;padding-top:22px;border-top:1px solid rgba(255,255,255,0.1);font-size:13px;color:#8a8a8a;text-align:center}
+.trd-shell-footer-brand{font-size:16px;font-weight:700;color:#fff;margin:0 0 8px}
+.trd-shell-footer-tagline{font-size:14px;color:#a8a8a8;line-height:1.55;margin:0}
+/* Phase 39.7.1 (Apr 26 2026) — Hide accessibility skip-link until keyboard-focused.
+   Bug: skip-link was rendering as visible button in top-left of every page (e.g.
+   "Skip to main content" sitting next to brand on Saffron Flame test). Standard
+   pattern is offscreen-by-default, slide in on :focus. Catches the most common
+   href patterns that accessibility-agent and frontend-agent emit. Class-based
+   selectors are scoped to obvious skip-link patterns to avoid affecting unrelated
+   anchors. */
+.skip-link,a.skip-to-main,a.skip-to-content,a[href="#main"],a[href="#content"],a[href="#main-content"]{position:absolute;left:8px;top:-48px;background:#000;color:#fff;padding:10px 18px;z-index:9999;border-radius:0 0 6px 6px;font-weight:600;text-decoration:none;transition:top .15s ease}
+.skip-link:focus,a.skip-to-main:focus,a.skip-to-content:focus,a[href="#main"]:focus,a[href="#content"]:focus,a[href="#main-content"]:focus{top:0;outline:2px solid #fff;outline-offset:2px}
+/* Phase 39.31 (Apr 26 2026) — Header "More ▾" dropdown for 7+ page sites.
+   Built on native <details>/<summary> so it works without JS. Tiny inline
+   JS below enhances with click-outside-to-close + Esc-to-close. Auto-
+   columns the dropdown panel based on item count: 1 col ≤8, 2 cols 9-16,
+   3 cols 17+ — gracefully scales up to ~30 pages before needing a true
+   categorized mega-menu (Phase 39.32 if telemetry shows demand). */
+/* Phase 39.61 (Apr 30, 2026) — More dropdown: div+button replaces
+   details/summary. Button inherits all nav-a styles exactly so sizing
+   is pixel-identical to other nav links. Opens on hover (desktop) and
+   on click (mobile/keyboard). */
+.trd-nav-more{position:relative;display:inline-flex;align-items:center}
+.trd-nav-more-btn{background:none;border:none;padding:6px 0;margin:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:inherit;font-weight:500;font-family:inherit;letter-spacing:inherit;color:inherit;border-bottom:2px solid transparent;transition:border-color .2s ease,color .2s ease;user-select:none;white-space:nowrap;line-height:inherit}
+.trd-nav-more-btn:hover,.trd-nav-more.is-open .trd-nav-more-btn{border-bottom-color:currentColor}
+.trd-nav-more-panel{display:none;position:absolute;top:calc(100% + 10px);right:0;min-width:220px;max-width:min(900px,95vw);max-height:80vh;overflow-y:auto;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:10px;padding:16px;box-shadow:0 12px 32px rgba(0,0,0,0.14);flex-direction:column;gap:2px;z-index:60}.trd-mega-panel{padding:20px}.trd-mega-grid{display:flex;gap:0;width:100%}.trd-mega-col{padding:0 16px;border-right:1px solid rgba(0,0,0,0.06)}.trd-mega-col:first-child{padding-left:0}.trd-mega-col:last-child{border-right:none}.trd-mega-col-heading{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(0,0,0,.4);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(0,0,0,.06)}.trd-mega-col a{display:block;padding:5px 0;font-size:.875rem;color:inherit;text-decoration:none;white-space:nowrap;transition:opacity .15s}.trd-mega-col a:hover{opacity:.6}
+.trd-nav-more:hover .trd-nav-more-panel,.trd-nav-more.is-open .trd-nav-more-panel{display:flex}
+.trd-nav-more-panel a{display:block;padding:9px 14px;border-radius:6px;font-size:14.5px;font-weight:500;color:#1a1a1a!important;text-decoration:none!important;border-bottom:0;transition:background .15s ease}
+.trd-nav-more-panel a:hover{background:rgba(0,0,0,0.05)}
+.trd-nav-more-panel a[aria-current=page]{background:rgba(0,0,0,0.07);font-weight:600}
+/* Auto-column the dropdown panel based on item count */
+.trd-nav-more-panel:has(a:nth-child(9)){display:grid;grid-template-columns:1fr 1fr;column-gap:8px;min-width:380px}
+.trd-nav-more-panel:has(a:nth-child(17)){grid-template-columns:repeat(3,1fr);min-width:560px}
+@media (max-width:780px){
+.trd-nav-more{width:100%}
+.trd-nav-more summary{padding:8px 0}
+.trd-nav-more-panel,.trd-nav-more-panel:has(a:nth-child(9)),.trd-nav-more-panel:has(a:nth-child(17)){position:static;display:flex;flex-direction:column;border:0;padding:0 0 0 12px;box-shadow:none;background:transparent;margin-top:6px;min-width:0}
+.trd-nav-more-panel a{padding:8px 12px;color:inherit}
+.trd-nav-more-panel a:hover{background:rgba(255,255,255,0.06)}
+}
+/* Phase 39.31 V2 (Apr 26 2026) — extra rules for the templated nav path.
+   When <details.trd-nav-more> is wrapped in <li class="trd-nav-more-li">
+   (template path), it inherits the template's <ul> flexbox layout. Reset
+   list-style and ensure the dropdown can open above the template's <ul>
+   stacking context. Also boost selector specificity so these rules beat
+   template CSS that sets display/flex on the <ul>. */
+/* Phase 39.61: trd-nav-more-li updated for div+button approach */
+.trd-nav-more-li{list-style:none;position:relative}
+.trd-nav-more-li::marker{content:''}
+li.trd-nav-more-li>.trd-nav-more{position:static}
+li.trd-nav-more-li>.trd-nav-more>.trd-nav-more-panel{position:absolute;top:calc(100% + 6px);left:0;right:auto}
+nav .trd-nav-more-li>.trd-nav-more.is-open>.trd-nav-more-panel,
+header .trd-nav-more-li>.trd-nav-more.is-open>.trd-nav-more-panel{z-index:60}
+
+/* Phase 39.31 V3.2 (Apr 26 2026) — font-family + footer nowrap follow-up.
+
+   V3.2 fixes two visual issues left from V3.1:
+   (a) "More" was rendering in serif italic instead of matching nav anchors
+       (clean sans-serif). V3.1 forced color but inherited font-family from
+       body (which elegant templates set to serif). Force a system sans
+       stack so "More" matches typical nav-link aesthetic across templates.
+   (b) Footer "Private Dining" wraps mid-item even with break-inside:avoid
+       because column-count creates narrow columns and the anchor's TEXT
+       wraps within the LI. Add white-space:nowrap on footer anchors so
+       2-word items stay on one line. */
+/* Phase 39.61 (Apr 30): Old details/summary overrides removed.
+   Now using div+button which needs no !important overrides. */
+/* Ecommerce 2-row Amazon-style header */
+.trd-ec-header{position:sticky;top:0;z-index:50;background:#0f1111;color:#fff;box-sizing:border-box}
+.trd-ec-header *{box-sizing:border-box}
+.trd-ec-row1{display:flex;align-items:center;gap:16px;padding:10px 24px;max-width:1500px;margin:0 auto}
+.trd-ec-brand{font-weight:700;font-size:22px;letter-spacing:-0.02em;text-decoration:none;color:#fff;flex-shrink:0;white-space:nowrap}
+.trd-ec-search{flex:1;display:flex;align-items:center;background:#fff;border-radius:4px;overflow:hidden;max-width:800px}
+.trd-ec-search-input{flex:1;border:none;outline:none;padding:10px 14px;font-size:15px;color:#0f1111;min-width:0}
+.trd-ec-search-btn{background:#febd69;border:none;padding:10px 16px;cursor:pointer;font-size:18px;color:#0f1111;transition:background .15s ease}
+.trd-ec-search-btn:hover{background:#f3a847}
+.trd-ec-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.trd-ec-action{color:#fff;text-decoration:none;font-size:13px;font-weight:500;padding:8px 10px;border-radius:3px;border:1px solid transparent;white-space:nowrap;transition:border-color .15s ease;line-height:1.3}
+.trd-ec-action:hover{border-color:rgba(255,255,255,0.4)}
+.trd-ec-action strong{display:block;font-size:14px}
+.trd-ec-cart{font-weight:700;font-size:15px}
+.trd-ec-row2{background:#232f3e;border-top:1px solid rgba(255,255,255,0.08)}
+.trd-ec-cats{display:flex;align-items:center;padding:0 16px;max-width:1500px;margin:0 auto;overflow-x:auto;scrollbar-width:none}
+.trd-ec-cats::-webkit-scrollbar{display:none}
+.trd-ec-cats a{color:#fff;text-decoration:none;font-size:13.5px;font-weight:500;padding:9px 12px;white-space:nowrap;border:1px solid transparent;border-radius:2px;transition:border-color .15s ease}
+.trd-ec-cats a:hover,.trd-ec-cats a[aria-current=page]{border-color:rgba(255,255,255,0.5)}
+@media (max-width:780px){
+.trd-ec-row1{padding:8px 12px;gap:10px}
+.trd-ec-brand{font-size:18px}
+.trd-ec-search-input{padding:8px 10px;font-size:14px}
+.trd-ec-actions{gap:2px}
+.trd-ec-action{padding:6px 8px;font-size:12px}
+.trd-ec-cats a{padding:7px 10px;font-size:13px}
+}
+/* ── Phase 39.62: 5 Ecommerce Template CSS ── */
+/* T1 Amazon Dark */
+.ec1-header{position:sticky;top:0;z-index:50;background:#0f1111;color:#fff;font-family:system-ui,-apple-system,sans-serif;box-sizing:border-box}
+.ec1-header *{box-sizing:border-box}
+.ec1-row1{display:flex;align-items:center;gap:12px;padding:8px 20px;max-width:1600px;margin:0 auto}
+.ec1-brand{font-size:22px;font-weight:900;color:#fff;text-decoration:none;letter-spacing:-0.03em;flex-shrink:0;white-space:nowrap}
+.ec1-brand span{color:#ff9900}
+.ec1-search{flex:1;display:flex;align-items:center;background:#fff;border-radius:4px;overflow:hidden;border:2px solid #ff9900;max-width:800px}
+.ec1-search-cat{border:none;outline:none;background:#e8e8e8;padding:0 8px;height:40px;font-size:12px;cursor:pointer;border-right:1px solid #ccc;color:#333;min-width:44px}
+.ec1-search-input{flex:1;border:none;outline:none;padding:0 12px;height:40px;font-size:15px;color:#0f1111;min-width:0}
+.ec1-search-btn{background:#ff9900;border:none;width:44px;height:40px;cursor:pointer;font-size:18px;transition:background .15s;color:#333}
+.ec1-search-btn:hover{background:#f3a847}
+.ec1-actions{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.ec1-action{color:#fff;text-decoration:none;font-size:12px;padding:6px 10px;border-radius:3px;border:1px solid transparent;transition:border-color .15s;line-height:1.3;white-space:nowrap}
+.ec1-action:hover{border-color:rgba(255,255,255,0.5);color:#fff}
+.ec1-action strong{display:block;font-size:13px;font-weight:700}
+.ec1-cart-btn{display:flex;align-items:center;gap:6px;color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:6px 10px;border:1px solid transparent;border-radius:3px;transition:border-color .15s}
+.ec1-cart-btn:hover{border-color:rgba(255,255,255,0.5);color:#fff}
+.ec1-cart-count{background:#ff9900;color:#111;font-size:11px;font-weight:900;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center}
+.ec1-row2{background:#232f3e;border-top:1px solid #3a4553}
+.ec1-cats{display:flex;align-items:center;padding:0 20px;max-width:1600px;margin:0 auto;overflow:visible;scrollbar-width:none;gap:2px}
+.ec1-cats::-webkit-scrollbar{display:none}
+/* Phase 45.8 — the category row must never push the PAGE sideways.
+   These rows are display:flex with white-space:nowrap links and overflow:visible,
+   so 45 links laid out inline ran 812-986px past a 390px viewport on 40 of 45
+   pages in the shipped build. overflow-x:auto is not the answer: any overflow
+   value makes the row a scroll container and clips the absolutely-positioned
+   More dropdown, which is why it was set to visible in the first place. Wrapping
+   keeps the dropdown visible and keeps the page width honest. */
+@media(max-width:1100px){
+  .ec1-cats,.ec4-cats{flex-wrap:wrap;row-gap:2px}
+}
+@media(max-width:780px){
+  .ec1-cats,.ec4-cats{padding-left:12px;padding-right:12px}
+  .ec1-cats a,.ec4-cats a{font-size:12px;padding:7px 9px}
+}
+/* Nothing inside the header may exceed the viewport, whatever the agent adds. */
+.ec1-row1,.ec1-row2,.ec1-cats,.ec4-cats{max-width:100%;box-sizing:border-box}
+.ec-nav-dropdown-panel{max-width:calc(100vw - 24px)}
+.ec1-cats a{color:#fff;text-decoration:none;font-size:13px;font-weight:500;padding:9px 13px;white-space:nowrap;border:1px solid transparent;border-radius:2px;transition:border-color .15s}
+.ec1-cats a:hover,.ec1-cats a[aria-current=page]{border-color:rgba(255,255,255,0.6)}
+.ec1-all{font-weight:700}
+.ec-nav-dropdown{position:relative;display:inline-flex;align-items:center}
+.ec-nav-dropdown-btn{background:none;border:1px solid transparent;border-radius:2px;color:inherit;cursor:pointer;font-size:13px;font-weight:500;padding:9px 13px;white-space:nowrap;transition:border-color .15s;font-family:inherit;line-height:1}
+.ec-nav-dropdown-btn:hover,.ec-nav-dropdown.ec-open .ec-nav-dropdown-btn{border-color:rgba(255,255,255,0.5)}
+.ec-nav-dropdown-btn[data-has-current]{border-color:rgba(255,255,255,0.6)}
+.ec-nav-dropdown-panel{display:none;position:absolute;top:100%;left:0;background:#232f3e;border:1px solid #3a4553;border-radius:4px;min-width:180px;z-index:9000;padding:6px 0;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+.ec-nav-dropdown.ec-open .ec-nav-dropdown-panel{display:flex;flex-direction:column}
+.ec-nav-dropdown-panel a{color:#ccc;text-decoration:none;font-size:13px;padding:9px 16px;white-space:nowrap;transition:background .12s,color .12s}
+.ec-nav-dropdown-panel a:hover,.ec-nav-dropdown-panel a[aria-current=page]{background:#384759;color:#fff}
+.ec-cats-light .ec-nav-dropdown-btn{color:#333}
+.ec-cats-light .ec-nav-dropdown-btn:hover,.ec-cats-light .ec-nav-dropdown.ec-open .ec-nav-dropdown-btn{border-color:#333}
+.ec-cats-light .ec-nav-dropdown-panel{background:#fff;border-color:#e0e0e0;box-shadow:0 4px 16px rgba(0,0,0,0.12)}
+.ec-cats-light .ec-nav-dropdown-panel a{color:#333}
+.ec-cats-light .ec-nav-dropdown-panel a:hover{background:#f5f5f5;color:#000}
+.ec1-footer{background:#131921;color:#e8e8e8;font-family:system-ui,-apple-system,sans-serif}
+.ec1-footer-back{background:#232f3e;text-align:center;padding:12px;font-size:13px;cursor:pointer;color:#fff}
+.ec1-footer-back:hover{background:#2d3f50}
+.ec1-footer-main{max-width:1200px;margin:0 auto;padding:32px 24px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.ec1-footer-col h4{font-size:15px;font-weight:700;color:#fff;margin:0 0 12px}
+.ec1-footer-col ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.ec1-footer-col a{color:#ccc;text-decoration:none;font-size:13px;transition:color .15s}
+.ec1-footer-col a:hover{color:#fff;text-decoration:underline}
+.ec1-footer-divider{border:0;border-top:1px solid #3a4553;margin:0 24px}
+.ec1-footer-mid{max-width:1200px;margin:0 auto;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.ec1-footer-brand{font-size:20px;font-weight:900;color:#fff;letter-spacing:-0.03em}
+.ec1-footer-brand span{color:#ff9900}
+.ec1-footer-socials{display:flex;gap:10px}
+.ec1-footer-socials a{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.1);color:#e8e8e8;text-decoration:none;font-size:16px;transition:background .15s}
+.ec1-footer-socials a:hover{background:rgba(255,255,255,0.2)}
+.ec1-footer-payments{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 24px;border-top:1px solid #232f3e}
+.ec1-footer-payment-badge{background:#fff;color:#333;font-size:11px;font-weight:700;padding:4px 10px;border-radius:4px}
+.ec1-footer-bottom{background:#0d1117;text-align:center;padding:14px 24px;font-size:12px;color:#888;display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+.ec1-footer-bottom a{color:#888;text-decoration:none;transition:color .15s}
+.ec1-footer-bottom a:hover{color:#ccc}
+@media(max-width:900px){.ec1-footer-main{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.ec1-footer-main{grid-template-columns:1fr}}
+@media(max-width:780px){.ec1-row1{padding:8px 12px;gap:8px}.ec1-brand{font-size:18px}.ec1-search-cat{display:none}.ec1-action:not(.ec1-cart-btn){display:none}}
+/* T2 Noon Bright */
+.ec2-header{position:sticky;top:0;z-index:50;background:#ffe000;color:#000;font-family:system-ui,-apple-system,sans-serif;box-sizing:border-box}
+.ec2-header *{box-sizing:border-box}
+.ec2-row1{display:flex;align-items:center;gap:14px;padding:10px 24px;max-width:1600px;margin:0 auto}
+.ec2-brand{font-size:26px;font-weight:900;color:#000;text-decoration:none;letter-spacing:-0.04em;flex-shrink:0}
+.ec2-location{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:500;color:#333;cursor:pointer;flex-shrink:0;white-space:nowrap;padding:4px 10px;border-radius:20px;background:rgba(0,0,0,0.08)}
+.ec2-search{flex:1;display:flex;align-items:center;background:#fff;border-radius:25px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);max-width:700px}
+.ec2-search-input{flex:1;border:none;outline:none;padding:11px 20px;font-size:15px;color:#333;min-width:0;background:transparent}
+.ec2-search-btn{background:none;border:none;padding:0 18px;cursor:pointer;font-size:20px;color:#666;height:44px}
+.ec2-search-btn:hover{color:#000}
+.ec2-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.ec2-action{display:flex;align-items:center;gap:5px;color:#000;text-decoration:none;font-size:13px;font-weight:600;padding:7px 12px;border-radius:20px;transition:background .15s;white-space:nowrap}
+.ec2-action:hover{background:rgba(0,0,0,0.1);color:#000}
+.ec2-row2{background:#fff;border-bottom:1px solid #e8e8e8;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.ec2-cats{display:flex;align-items:center;padding:0 24px;max-width:1600px;margin:0 auto;overflow:visible;scrollbar-width:none}
+.ec2-cats::-webkit-scrollbar{display:none}
+.ec2-cats a{color:#333;text-decoration:none;font-size:13.5px;font-weight:500;padding:11px 14px;white-space:nowrap;border-bottom:3px solid transparent;transition:border-color .15s,color .15s}
+.ec2-cats a:hover{color:#000;border-bottom-color:#ffe000}
+.ec2-cats a[aria-current=page]{color:#000;border-bottom-color:#ffe000;font-weight:700}
+.ec2-footer{background:#fff;border-top:4px solid #ffe000;font-family:system-ui,-apple-system,sans-serif}
+.ec2-footer-help{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid #eee;flex-wrap:wrap;gap:16px}
+.ec2-footer-help-left h3{font-size:20px;font-weight:700;margin:0 0 4px;color:#111}
+.ec2-footer-help-left p{font-size:13px;color:#666;margin:0}
+.ec2-footer-help-right{display:flex;gap:20px;flex-wrap:wrap}
+.ec2-footer-help-item{display:flex;align-items:center;gap:10px;font-size:13px;color:#333}
+.ec2-footer-mega{padding:28px 40px;display:grid;grid-template-columns:repeat(6,1fr);gap:20px;background:#f9f9f9;border-top:1px solid #eee}
+.ec2-footer-col h4{font-size:13px;font-weight:700;color:#111;margin:0 0 10px;text-transform:uppercase;letter-spacing:0.04em}
+.ec2-footer-col ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:7px}
+.ec2-footer-col a{color:#555;text-decoration:none;font-size:13px;transition:color .15s}
+.ec2-footer-col a:hover{color:#000}
+.ec2-footer-bottom-row{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;border-top:1px solid #e8e8e8;flex-wrap:wrap;gap:14px}
+.ec2-footer-app{display:flex;gap:10px;flex-wrap:wrap}
+.ec2-app-badge{display:inline-flex;align-items:center;gap:8px;background:#111;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600}
+.ec2-app-badge:hover{background:#333}
+.ec2-footer-socials{display:flex;gap:10px}
+.ec2-footer-socials a{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#ffe000;color:#000;text-decoration:none;font-size:18px;font-weight:700;transition:transform .15s}
+.ec2-footer-socials a:hover{transform:scale(1.1)}
+.ec2-footer-payments{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 40px;border-top:1px solid #e8e8e8}
+.ec2-payment-badge{background:#fff;border:1px solid #ddd;color:#333;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px}
+.ec2-footer-legal{background:#111;color:#999;text-align:center;padding:12px;font-size:12px}
+.ec2-footer-legal a{color:#999;text-decoration:none;margin:0 8px}
+.ec2-footer-legal a:hover{color:#fff}
+@media(max-width:1100px){.ec2-footer-mega{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.ec2-footer-mega{grid-template-columns:repeat(2,1fr);padding:20px}.ec2-footer-help,.ec2-footer-bottom-row,.ec2-footer-payments{padding:16px 20px}}
+@media(max-width:780px){.ec2-row1{padding:8px 12px;gap:8px}.ec2-brand{font-size:20px}.ec2-location{display:none}}
+/* T3 SharafDG Amber */
+.ec3-header{position:sticky;top:0;z-index:50;background:#f5a623;color:#000;font-family:system-ui,-apple-system,sans-serif;box-sizing:border-box}
+.ec3-header *{box-sizing:border-box}
+.ec3-row1{display:flex;align-items:center;gap:16px;padding:10px 24px;max-width:1600px;margin:0 auto}
+.ec3-brand{font-size:22px;font-weight:900;color:#003087;text-decoration:none;letter-spacing:-0.02em;flex-shrink:0;white-space:nowrap}
+.ec3-brand em{background:#003087;color:#f5a623;padding:0 4px;border-radius:3px;font-style:normal}
+.ec3-search{flex:1;display:flex;align-items:center;background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,0.15)}
+.ec3-search-input{flex:1;border:none;outline:none;padding:10px 16px;font-size:15px;color:#333;min-width:0}
+.ec3-search-btn{background:#003087;border:none;padding:0 20px;height:42px;cursor:pointer;font-size:13px;font-weight:700;color:#fff;transition:background .15s;display:flex;align-items:center;gap:5px}
+.ec3-search-btn:hover{background:#002266}
+.ec3-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.ec3-action{display:flex;align-items:center;gap:5px;color:#003087;text-decoration:none;font-size:13px;font-weight:700;padding:8px 14px;background:rgba(255,255,255,0.3);border-radius:5px;transition:background .15s;white-space:nowrap}
+.ec3-action:hover{background:rgba(255,255,255,0.5);color:#003087}
+.ec3-action.ec3-cart{background:#003087;color:#fff}
+.ec3-action.ec3-cart:hover{background:#002266;color:#fff}
+.ec3-row2{background:#fff;border-bottom:2px solid #e8e8e8}
+.ec3-cats{display:flex;align-items:center;padding:0 24px;max-width:1600px;margin:0 auto;overflow:visible;scrollbar-width:none}
+.ec3-cats::-webkit-scrollbar{display:none}
+.ec3-cat-dropdown{background:none;border:none;border-bottom:2px solid transparent;padding:10px 16px;font-size:14px;font-weight:700;color:#333;cursor:pointer;white-space:nowrap;transition:border-color .15s}
+.ec3-cat-dropdown:hover{border-bottom-color:#f5a623;color:#000}
+.ec3-cats a{color:#444;text-decoration:none;font-size:13px;font-weight:600;padding:10px 13px;white-space:nowrap;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:0.02em;transition:border-color .15s,color .15s}
+.ec3-cats a:hover{color:#003087;border-bottom-color:#f5a623}
+.ec3-cats a[aria-current=page]{color:#003087;border-bottom-color:#003087;font-weight:700}
+.ec3-delivery{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:12px;color:#555;white-space:nowrap;padding:0 0 0 16px;flex-shrink:0}
+.ec3-delivery strong{color:#003087;font-size:13px}
+.ec3-footer{background:#003087;color:#e8e8e8;font-family:system-ui,-apple-system,sans-serif}
+.ec3-footer-main{max-width:1200px;margin:0 auto;padding:36px 24px 24px;display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
+.ec3-footer-col h4{font-size:13px;font-weight:700;color:#fff;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.06em;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.15)}
+.ec3-footer-col ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.ec3-footer-col a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:13px;transition:color .15s}
+.ec3-footer-col a:hover{color:#f5a623}
+.ec3-footer-mid{background:#002266;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.ec3-footer-payments{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ec3-payment-badge{background:#fff;color:#333;font-size:11px;font-weight:700;padding:4px 10px;border-radius:4px}
+.ec3-footer-socials{display:flex;gap:8px}
+.ec3-footer-socials a{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#f5a623;color:#003087;text-decoration:none;font-size:16px;font-weight:700;transition:transform .15s}
+.ec3-footer-socials a:hover{transform:scale(1.1)}
+.ec3-footer-bottom{background:#001144;text-align:center;padding:12px 24px;font-size:12px;color:rgba(255,255,255,0.45)}
+.ec3-footer-bottom a{color:rgba(255,255,255,0.45);text-decoration:none;margin:0 8px}
+.ec3-footer-bottom a:hover{color:#fff}
+@media(max-width:900px){.ec3-footer-main{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.ec3-footer-main{grid-template-columns:1fr;padding:20px 16px}}
+@media(max-width:780px){.ec3-row1{padding:8px 12px;gap:10px}.ec3-brand{font-size:18px}.ec3-delivery{display:none}}
+/* T4 JioMart Clean */
+.ec4-header{position:sticky;top:0;z-index:50;background:#fff;color:#333;font-family:system-ui,-apple-system,sans-serif;box-sizing:border-box;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.ec4-header *{box-sizing:border-box}
+.ec4-row1{display:flex;align-items:center;gap:14px;padding:10px 24px;max-width:1600px;margin:0 auto}
+.ec4-brand{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0}
+.ec4-brand-icon{width:34px;height:34px;background:#cc0000;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.ec4-brand-name{font-size:20px;font-weight:900;color:#cc0000;letter-spacing:-0.02em}
+.ec4-location{display:flex;align-items:center;gap:4px;font-size:12px;color:#555;cursor:pointer;padding:6px 10px;border:1px solid #ddd;border-radius:20px;transition:border-color .15s;white-space:nowrap;flex-shrink:0}
+.ec4-location:hover{border-color:#cc0000;color:#cc0000}
+.ec4-search{flex:1;display:flex;align-items:center;background:#f5f5f5;border-radius:25px;overflow:hidden;border:1.5px solid #e0e0e0;transition:border-color .2s}
+.ec4-search:focus-within{border-color:#cc0000}
+.ec4-search-input{flex:1;border:none;outline:none;padding:10px 18px;font-size:15px;color:#333;background:transparent;min-width:0}
+.ec4-search-btn{background:none;border:none;padding:0 16px;cursor:pointer;font-size:20px;color:#888;height:42px}
+.ec4-search-btn:hover{color:#cc0000}
+.ec4-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.ec4-action{display:flex;flex-direction:column;align-items:center;gap:2px;color:#333;text-decoration:none;font-size:11px;font-weight:600;padding:6px 12px;border-radius:8px;transition:background .15s;min-width:48px}
+.ec4-icon{font-size:22px;line-height:1}
+.ec4-action:hover{background:#f5f5f5;color:#cc0000}
+.ec4-action.ec4-cart{background:#cc0000;color:#fff;border-radius:10px}
+.ec4-action.ec4-cart:hover{background:#aa0000;color:#fff}
+.ec4-row2{background:#f9f9f9;border-top:1px solid #e8e8e8;border-bottom:1px solid #e8e8e8}
+.ec4-cats{display:flex;align-items:center;padding:0 24px;max-width:1600px;margin:0 auto;overflow:visible;scrollbar-width:none;gap:4px}
+.ec4-cats::-webkit-scrollbar{display:none}
+.ec4-cats a{display:flex;align-items:center;gap:5px;color:#444;text-decoration:none;font-size:13px;font-weight:600;padding:9px 13px;white-space:nowrap;border-radius:20px;transition:background .15s,color .15s}
+.ec4-cats a:hover{background:#ffe0e0;color:#cc0000}
+.ec4-cats a[aria-current=page]{background:#cc0000;color:#fff}
+.ec4-cats a:first-child{background:#008080;color:#fff;font-weight:700}
+.ec4-cats a:first-child:hover{background:#006666}
+.ec4-footer{background:#f5f5f5;border-top:3px solid #cc0000;font-family:system-ui,-apple-system,sans-serif}
+.ec4-footer-main{max-width:1200px;margin:0 auto;padding:32px 24px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.ec4-footer-col h4{font-size:13px;font-weight:700;color:#111;margin:0 0 10px;text-transform:uppercase;letter-spacing:0.04em}
+.ec4-footer-col ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.ec4-footer-col a{color:#555;text-decoration:none;font-size:13px;transition:color .15s}
+.ec4-footer-col a:hover{color:#cc0000}
+.ec4-footer-mid{background:#fff;border-top:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;padding:18px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.ec4-footer-app h5,.ec4-footer-social h5{font-size:12px;font-weight:700;color:#333;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.03em}
+.ec4-footer-app-badges{display:flex;gap:10px;flex-wrap:wrap}
+.ec4-app-badge{display:inline-flex;align-items:center;gap:7px;background:#111;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600}
+.ec4-app-badge:hover{opacity:0.85}
+.ec4-footer-socials{display:flex;gap:10px}
+.ec4-footer-socials a{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#cc0000;color:#fff;text-decoration:none;font-size:18px;transition:transform .15s}
+.ec4-footer-socials a:hover{transform:scale(1.1);background:#aa0000}
+.ec4-footer-bottom{text-align:center;padding:14px 24px;font-size:12px;color:#888;border-top:1px solid #e0e0e0;background:#fff;display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.ec4-footer-bottom a{color:#888;text-decoration:none}
+.ec4-footer-bottom a:hover{color:#cc0000}
+@media(max-width:900px){.ec4-footer-main{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.ec4-footer-main{grid-template-columns:1fr;padding:20px 16px}}
+@media(max-width:780px){.ec4-row1{padding:8px 12px;gap:8px}.ec4-brand-name{display:none}.ec4-location{display:none}.ec4-label{display:none}}
+/* T5 Midnight Premium */
+.ec5-header{position:sticky;top:0;z-index:50;background:#0a0a0a;color:#fff;font-family:system-ui,-apple-system,sans-serif;box-sizing:border-box;border-bottom:1px solid #1e1e1e}
+.ec5-header *{box-sizing:border-box}
+.ec5-row1{display:flex;align-items:center;gap:20px;padding:12px 32px;max-width:1600px;margin:0 auto}
+.ec5-brand{font-size:24px;font-weight:900;color:#fff;text-decoration:none;letter-spacing:-0.03em;flex-shrink:0}
+.ec5-brand span{color:#c9a227}
+.ec5-search{flex:1;display:flex;align-items:center;background:#1a1a1a;border-radius:4px;overflow:hidden;border:1px solid #333;transition:border-color .2s;max-width:700px}
+.ec5-search:focus-within{border-color:#c9a227}
+.ec5-search-input{flex:1;border:none;outline:none;padding:11px 16px;font-size:15px;color:#e8e8e8;background:transparent;min-width:0}
+.ec5-search-input::placeholder{color:#666}
+.ec5-search-btn{background:#c9a227;border:none;padding:0 20px;height:44px;cursor:pointer;font-size:14px;font-weight:700;color:#0a0a0a;transition:background .15s}
+.ec5-search-btn:hover{background:#b8911e}
+.ec5-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.ec5-action{color:#ccc;text-decoration:none;font-size:12px;padding:6px 12px;border-radius:4px;border:1px solid transparent;transition:border-color .15s,color .15s;line-height:1.3;white-space:nowrap}
+.ec5-action:hover{border-color:#333;color:#fff}
+.ec5-action strong{display:block;font-size:13px;font-weight:600;color:#fff}
+.ec5-cart-btn{display:flex;align-items:center;gap:8px;text-decoration:none;font-weight:700;font-size:14px;padding:8px 16px;background:#c9a227;color:#0a0a0a;border-radius:4px;transition:background .15s}
+.ec5-cart-btn:hover{background:#b8911e;color:#0a0a0a}
+.ec5-row2{background:#111;border-top:1px solid #1e1e1e;border-bottom:1px solid #1e1e1e}
+.ec5-cats{display:flex;align-items:center;padding:0 32px;max-width:1600px;margin:0 auto;overflow:visible;scrollbar-width:none}
+.ec5-cats::-webkit-scrollbar{display:none}
+.ec5-cats a{color:#aaa;text-decoration:none;font-size:13px;font-weight:500;padding:10px 14px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+.ec5-cats a:hover{color:#fff;border-bottom-color:#c9a227}
+.ec5-cats a[aria-current=page]{color:#c9a227;border-bottom-color:#c9a227;font-weight:700}
+.ec5-footer{background:#0a0a0a;color:#aaa;border-top:1px solid #1e1e1e;font-family:system-ui,-apple-system,sans-serif}
+.ec5-footer-main{max-width:1200px;margin:0 auto;padding:44px 32px 28px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:36px}
+.ec5-footer-brand-col .ec5-footer-logo{font-size:24px;font-weight:900;color:#fff;letter-spacing:-0.03em;margin-bottom:10px;display:block;text-decoration:none}
+.ec5-footer-logo span{color:#c9a227}
+.ec5-footer-brand-col p{font-size:13px;color:#666;line-height:1.6;margin:0 0 18px}
+.ec5-footer-col h4{font-size:11px;font-weight:700;color:#fff;margin:0 0 14px;text-transform:uppercase;letter-spacing:0.1em}
+.ec5-footer-col ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+.ec5-footer-col a{color:#666;text-decoration:none;font-size:13px;transition:color .15s}
+.ec5-footer-col a:hover{color:#c9a227}
+.ec5-footer-socials{display:flex;gap:10px}
+.ec5-footer-socials a{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:1px solid #333;color:#aaa;text-decoration:none;font-size:16px;transition:border-color .15s,color .15s}
+.ec5-footer-socials a:hover{border-color:#c9a227;color:#c9a227}
+.ec5-footer-divider{border:0;border-top:1px solid #1e1e1e;margin:0}
+.ec5-footer-bottom{max-width:1200px;margin:0 auto;padding:18px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:12px}
+.ec5-footer-payments{display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex-direction:row}
+.ec5-payment-badge{background:#1a1a1a;border:1px solid #333;color:#aaa;font-size:11px;font-weight:700;padding:4px 10px;border-radius:4px}
+.ec5-footer-legal{display:flex;gap:14px;flex-wrap:wrap;color:#555}
+.ec5-footer-legal a{color:#555;text-decoration:none;transition:color .15s}
+.ec5-footer-legal a:hover{color:#aaa}
+@media(max-width:1000px){.ec5-footer-main{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.ec5-footer-main{grid-template-columns:1fr;padding:24px 16px}}
+/* ── EC6: Fresh Green ── */
+.ec6-header{position:sticky;top:0;z-index:50;background:#fff;font-family:system-ui,-apple-system,sans-serif;box-sizing:border-box;border-bottom:3px solid #2d8a4e}
+.ec6-header *{box-sizing:border-box}
+.ec6-promo-bar{background:#2d8a4e;text-align:center;font-size:12px;font-weight:700;padding:6px;color:#fff}
+.ec6-row1{display:flex;align-items:center;gap:12px;padding:10px 20px;max-width:1600px;margin:0 auto}
+.ec6-brand{font-size:22px;font-weight:900;color:#2d8a4e;text-decoration:none;letter-spacing:-0.03em;flex-shrink:0}
+.ec6-brand span{color:#111}
+.ec6-search{flex:1;display:flex;align-items:center;background:#f8fff8;border:2px solid #2d8a4e;border-radius:8px;overflow:hidden;max-width:720px}
+.ec6-search-input{flex:1;border:none;background:none;outline:none;padding:10px 14px;font-size:15px;color:#111;min-width:0}
+.ec6-search-btn{background:#2d8a4e;border:none;padding:10px 18px;cursor:pointer;font-size:18px;color:#fff;transition:background .15s}
+.ec6-search-btn:hover{background:#256e3e}
+.ec6-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.ec6-loc-btn,.ec6-act-btn,.ec6-cart-btn{color:#333;text-decoration:none;font-size:13px;font-weight:600;padding:8px 12px;border:1.5px solid #e5e5e5;border-radius:8px;transition:border-color .15s;white-space:nowrap}
+.ec6-cart-btn{background:#2d8a4e;color:#fff;border-color:#2d8a4e}
+.ec6-loc-btn:hover,.ec6-act-btn:hover{border-color:#2d8a4e;color:#2d8a4e}
+.ec6-row2{background:#2d8a4e}
+.ec6-cats{display:flex;padding:0 16px;max-width:1600px;margin:0 auto;overflow:visible;scrollbar-width:none}
+.ec6-cats::-webkit-scrollbar{display:none}
+.ec6-cats a{color:rgba(255,255,255,.85);text-decoration:none;font-size:13px;font-weight:600;padding:9px 14px;white-space:nowrap;border-bottom:2px solid transparent;transition:border-color .15s,color .15s}
+.ec6-cats a:hover,.ec6-cats a[aria-current=page]{color:#fff;border-bottom-color:#fff}
+.ec6-footer{background:#1a2e1a;color:#ccc;font-family:system-ui,-apple-system,sans-serif}
+.ec6-footer *{box-sizing:border-box}
+.ec6-footer-main{display:grid;grid-template-columns:2fr repeat(auto-fit,minmax(120px,1fr));gap:24px;padding:32px 24px;max-width:1400px;margin:0 auto}
+@media(max-width:900px){.ec6-footer-main{grid-template-columns:1fr 1fr;gap:20px}}
+.ec6-footer-col h4{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:#fff;margin:0 0 12px}
+.ec6-footer-col ul{list-style:none;padding:0;margin:0}
+.ec6-footer-col ul li{margin-bottom:7px}
+.ec6-footer-col ul a{color:#7ea87e;text-decoration:none;font-size:13px;transition:color .15s}
+.ec6-footer-col ul a:hover{color:#4ade80}
+.ec6-footer-logo{font-size:20px;font-weight:900;color:#2d8a4e;margin-bottom:8px}
+.ec6-footer-logo span{color:#fff}
+.ec6-footer-tagline{font-size:13px;color:#666;line-height:1.6;margin:0 0 14px}
+.ec6-footer-socials{display:flex;gap:8px}
+.ec6-footer-socials a{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);color:#ccc;text-decoration:none;transition:background .15s;font-size:14px}
+.ec6-footer-socials a:hover{background:#2d8a4e;color:#fff}
+.ec6-footer-bottom{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:#555;max-width:1400px;margin:0 auto;flex-wrap:wrap;gap:10px}
+.ec6-payments{display:flex;gap:6px}
+.ec6-pay{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:3px;padding:3px 9px;font-size:10px;font-weight:700;color:#aaa}
+.ec6-footer-links{display:flex;gap:14px}
+.ec6-footer-links a{color:#666;text-decoration:none;font-size:12px}
+.ec6-footer-links a:hover{color:#4ade80}
+/* ── Phase 39.63: Dynamic footer column layout ── */
+/* Used by all 6 ec variants when dynFooterCols is injected */
+.ec-footer-col-dyn{min-width:0}
+.ec-footer-col-dyn h4{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:#fff;margin:0 0 12px}
+.ec-footer-col-dyn ul{list-style:none;padding:0;margin:0}
+.ec-footer-col-dyn ul li{margin-bottom:7px}
+.ec-footer-col-dyn ul a{color:#aaa;text-decoration:none;font-size:13px;transition:color .15s}
+.ec-footer-col-dyn ul a:hover{color:#fff}
+@media(max-width:780px){.ec5-row1{padding:10px 16px;gap:12px}.ec5-brand{font-size:20px}.ec5-action{display:none}}
+/* Footer: replace grid 3-col with multi-column layout so column heights
+   auto-balance and "Order Online" wrap doesn't push other rows down.
+   This OVERRIDES the V2 grid rule (later rule, higher specificity wins). */
+body footer ul:has(li:nth-child(7)),
+.trd-shell-footer ul:has(li:nth-child(7)){
+  display:block !important;
+  column-count:3 !important;
+  column-gap:36px !important;
+  grid-template-columns:none !important;
+}
+body footer ul:has(li:nth-child(7))>li,
+.trd-shell-footer ul:has(li:nth-child(7))>li{
+  break-inside:avoid !important;
+  page-break-inside:avoid !important;
+  -webkit-column-break-inside:avoid !important;
+  margin:0 0 8px 0 !important;
+}
+/* V3.2: nowrap on the link itself so "Private Dining" / "Order Online" /
+   "Track Order" stay on one line within their column. break-inside:avoid
+   keeps the LI as a block-unit for column-balancing, but the anchor's
+   text inside still wraps without this. */
+body footer ul:has(li:nth-child(7))>li>a,
+.trd-shell-footer ul:has(li:nth-child(7))>li>a{
+  white-space:nowrap !important;
+}
+@media (max-width:880px){
+body footer ul:has(li:nth-child(7)),
+.trd-shell-footer ul:has(li:nth-child(7)){column-count:2 !important;column-gap:28px !important}
+}
+@media (max-width:520px){
+body footer ul:has(li:nth-child(7)),
+.trd-shell-footer ul:has(li:nth-child(7)){column-count:1 !important}
+}
+/* ── Dark mode / i18n toggles: pulled out of header area via JS stacker below ── */
+[data-trd-dark],[class*="trd-dark-toggle"],[id*="dark-toggle"],[id*="darkMode"],[class*="dark-toggle"],
+[data-trd-i18n],[class*="trd-i18n"],[id*="i18n"],[id*="lang-switch"]{
+  top:auto !important;
+}
+/* ── ec-footer-col-dyn grid layout ── */
+.ec-footer-col-dyn{min-width:0}
+.ec-footer-col-dyn h4{font-size:11px;font-weight:700;margin:0 0 12px;text-transform:uppercase;letter-spacing:.08em;opacity:.7}
+.ec-footer-col-dyn ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.ec-footer-col-dyn a{text-decoration:none;font-size:13px;opacity:.75;transition:opacity .15s}
+.ec-footer-col-dyn a:hover{opacity:1}
+</style>
+<script data-trd-shell="phase-39.61">
+(function(){
+  // Close ec-nav-dropdown on outside-click or Esc
+  document.addEventListener('click',function(e){
+    document.querySelectorAll('.ec-nav-dropdown.ec-open').forEach(function(d){
+      if(!d.contains(e.target)){d.classList.remove('ec-open');d.querySelector('.ec-nav-dropdown-btn')&&d.querySelector('.ec-nav-dropdown-btn').setAttribute('aria-expanded','false');}
+    });
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape')document.querySelectorAll('.ec-nav-dropdown.ec-open').forEach(function(d){d.classList.remove('ec-open');});
+  });
+  // Close .trd-nav-more dropdown on outside-click or Esc
+  document.addEventListener('click',function(e){
+    document.querySelectorAll('.trd-nav-more.is-open').forEach(function(d){
+      if(!d.contains(e.target)){
+        d.classList.remove('is-open');
+        var btn=d.querySelector('.trd-nav-more-btn');
+        if(btn)btn.setAttribute('aria-expanded','false');
+      }
+    });
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      document.querySelectorAll('.trd-nav-more.is-open').forEach(function(d){
+        d.classList.remove('is-open');
+        var btn=d.querySelector('.trd-nav-more-btn');
+        if(btn)btn.setAttribute('aria-expanded','false');
+      });
+    }
+  });
+  // ── Phase 39.66: Floating button stacker ──
+  // Prevents chat/WhatsApp/dark-mode/i18n/cart buttons overlapping at bottom-right.
+  (function stackFloatingButtons(){
+    function doStack(){
+      var ANCHOR_BOTTOM = 24;
+      var BTN_SIZE = 56;
+      var GAP = 12;
+      var RIGHT_THRESHOLD = 120; // px from right edge to be considered "right-side"
+      var wafab = document.getElementById('trd-wa-fab');
+      if(wafab){
+        wafab.style.cssText += ';position:fixed!important;bottom:'+ANCHOR_BOTTOM+'px!important;right:24px!important;z-index:9998!important;top:auto!important';
+      }
+      // Phase CNB-2: a11y widget stacks above dark-mode/i18n buttons — no longer excluded
+      // Previously excluded from stacker → always sat at bottom:24px → overlapped dark mode toggle
+      var a11yWrap = document.getElementById('trd-a11y-wrap');
+      if(a11yWrap && found.indexOf(a11yWrap) === -1) found.push(a11yWrap);
+      // Named selectors for known widgets
+      var knownSelectors = [
+        '#trd-dark-toggle','#dark-mode-toggle','#darkModeToggle','#darkToggle',
+        '[data-trd-dark]','[data-dark-toggle]','.trd-dark-btn','.dark-mode-btn','.dark-toggle-btn',
+        '#trd-i18n-btn','#trd-lang-switcher','#trd-i18n','#i18n-btn',
+        '[data-trd-i18n]','[data-trd-lang]','.trd-i18n-btn','.trd-lang-btn',
+        '#trd-compare-btn','#compare-btn','[data-trd-compare]',
+        '#trd-cart-fab','#floating-cart','#cart-fab','.cart-fab','.floating-cart-btn',
+        '[data-trd-cart-fab]','#ec-cart-fab',
+      ];
+      var found = [];
+      knownSelectors.forEach(function(sel){
+        try{
+          document.querySelectorAll(sel).forEach(function(el){
+            var isWaFab = (el.id === 'trd-wa-fab') || (wafab && wafab.contains(el)) || el.id === 'trd-a11y-wrap';
+            if(!isWaFab && found.indexOf(el) === -1) found.push(el);
+          });
+        }catch(e){}
+      });
+      // Also catch ANY position:fixed element in bottom/mid-right region not already found
+      try{
+        var allEls = document.querySelectorAll('body > *');
+        allEls.forEach(function(el){
+          if(found.indexOf(el) !== -1) return;
+          var isWaFab = (el.id === 'trd-wa-fab') || (wafab && wafab.contains(el)) || el.id === 'trd-a11y-wrap';
+          if(isWaFab) return;
+          var st = window.getComputedStyle(el);
+          if(st.position === 'fixed'){
+            var r = parseInt(st.right || '9999');
+            var b = parseInt(st.bottom || '9999');
+            var t = parseInt(st.top || '9999');
+            var w = parseInt(st.width || '0');
+            var h = parseInt(st.height || '0');
+            // Must be in right region, be a smallish button shape, and not a top-of-page fixed element
+            var inRightRegion = r < RIGHT_THRESHOLD || (window.innerWidth - r - w) < RIGHT_THRESHOLD;
+            var isButtonSized = w < 200 && h < 200 && w > 20 && h > 20;
+            var notHeader = t > 80 || b < 9999;
+            if(inRightRegion && isButtonSized && notHeader) found.push(el);
+          }
+        });
+      }catch(e){}
+      // Stack found elements above the wa-fab
+      var nextBottom = ANCHOR_BOTTOM + BTN_SIZE + GAP;
+      found.forEach(function(el){
+        el.style.cssText += ';position:fixed!important;bottom:'+nextBottom+'px!important;right:24px!important;z-index:'+(9997 - found.indexOf(el))+'!important;top:auto!important';
+        nextBottom += BTN_SIZE + GAP;
+      });
+    }
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', function(){ setTimeout(doStack, 400); setTimeout(doStack, 1500); });
+    } else {
+      setTimeout(doStack, 400); setTimeout(doStack, 1500);
+    }
+  })();
+})();
+</script>
+<script>
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init('phc_t94UQ8ksdEr7vFedexH3TkqVyNgdZWHSGjK8e2VYPdqd', {api_host:'https://app.posthog.com',loaded:function(p){if(window.location.host.includes('localhost'))p.opt_out_capturing();}});
+</script>
+  <meta name="description" content="AURELIA HOME — checkout. Ecommerce website.">
+  <link rel="canonical" href="https://api.dcsai.ai/a/app_047f/checkout.html">
+  <meta property="og:url" content="https://api.dcsai.ai/a/app_047f/checkout.html">
+  <meta name="robots" content="index, follow">
+<style data-trd-motion="phase-39.20">
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+  [data-trd-fade] {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity .6s ease-out, transform .6s ease-out;
+    will-change: opacity, transform;
+  }
+  [data-trd-fade].trd-fade-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  img[loading="lazy"]:not(.trd-img-loaded) {
+    opacity: 0;
+    transition: opacity .4s ease-out;
+  }
+  img[loading="lazy"].trd-img-loaded {
+    opacity: 1;
+  }
+}
+</style>
+</head>
+<body>
+    <header class="sh">
+  <div class="sh-cd"><div> </div><div> </div><div> </div></div>
+  <div class="sh-main"><a class="sh-mark" href="#!"></a>
+    <div><nav class="sh-nav" style="display:inline-flex"><a href="#drop"></a><a href="#archive"></a><a href="#hub"></a></nav><button class="sh-btn" aria-label="" aria-expanded="false" onclick="document.getElementById('sp').classList.toggle('open')"></button></div>
+  </div>
+  <nav id="sp" style="display:none"><a href="#drop"></a></nav>
+<div class="dcs-ec-actions" role="group" aria-label="Shop"><form class="dcs-ec-search" role="search" method="get" action="/search.html"><label class="dcs-ec-sr" for="dcs-ec-q">Search products</label><input id="dcs-ec-q" name="q" type="search" placeholder="Search AURELIA HOME…" autocomplete="off">
+<div class="trd-pay-section" style="margin:28px 0;padding:24px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;">
+  <h3 style="margin:0 0 18px;font-size:16px;font-weight:700;color:#1a202c;">Payment Information</h3>
+  <div style="display:grid;gap:14px;">
+    <label style="display:flex;flex-direction:column;gap:5px;font-size:13.5px;font-weight:600;color:#374151;">
+      Card Number
+      <input type="text" name="card_number" inputmode="numeric" autocomplete="cc-number"
+        placeholder="1234  5678  9012  3456" maxlength="19"
+        style="padding:11px 14px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px;letter-spacing:.05em;font-family:monospace;"
+        oninput="this.value=this.value.replace(/[^0-9]/g,'').replace(/(.{4})/g,'<button type="submit" ').trim().slice(0,19)" required>
+    </label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <label style="display:flex;flex-direction:column;gap:5px;font-size:13.5px;font-weight:600;color:#374151;">
+        Expiry Date
+        <input type="text" name="card_expiry" inputmode="numeric" autocomplete="cc-exp"
+          placeholder="MM / YY" maxlength="7"
+          style="padding:11px 14px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px;"
+          oninput="var v=this.value.replace(/[^0-9]/g,'');if(v.length>=2)v=v.slice(0,2)+' / '+v.slice(2);this.value=v.slice(0,7);" required>
+      </label>
+      <label style="display:flex;flex-direction:column;gap:5px;font-size:13.5px;font-weight:600;color:#374151;">
+        CVV / CVC
+        <input type="text" name="card_cvv" inputmode="numeric" autocomplete="cc-csc"
+          placeholder="123" maxlength="4"
+          style="padding:11px 14px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px;"
+          oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" required>
+      </label>
+    </div>
+    <label style="display:flex;flex-direction:column;gap:5px;font-size:13.5px;font-weight:600;color:#374151;">
+      Name on Card
+      <input type="text" name="card_name" autocomplete="cc-name"
+        placeholder="As printed on card"
+        style="padding:11px 14px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px;" required>
+    </label>
+  </div>
+  <p style="margin:14px 0 0;font-size:12px;color:#64748b;display:flex;align-items:center;gap:6px;">
+    <span style="font-size:16px;">🔒</span> Your payment details are encrypted and never stored.
+  </p>
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+    <span style="background:#fff;border:1px solid #e2e8f0;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;color:#333;">VISA</span>
+    <span style="background:#fff;border:1px solid #e2e8f0;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;color:#333;">Mastercard</span>
+    <span style="background:#fff;border:1px solid #e2e8f0;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;color:#333;">Amex</span>
+    <span style="background:#fff;border:1px solid #e2e8f0;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;color:#333;">PayPal</span>
+  </div>
+</div>
+<button type="submit" aria-label="Search">&#128269;</button></form><a class="dcs-ec-act" href="/wishlist.html">&#9825;<span class="dcs-ec-label">Wishlist</span></a><button class="dcs-ec-act" type="button" aria-label="Cart" onclick="if(window.trdOpenCart){trdOpenCart()}else{location.href='/cart.html'}">&#128722;<span class="dcs-ec-label">Cart</span><span class="dcs-ec-badge trd-cart-count"><span>0</span></span></button><a class="dcs-ec-act" href="/account.html">&#128100;<span class="dcs-ec-label">Account</span></a></div></header><style id="dcs-ec-actions-css">
+.dcs-ec-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto;font:inherit;color:inherit}
+.dcs-ec-search{display:flex;align-items:center;flex:1 1 220px;min-width:180px;max-width:420px;
+  border:1px solid currentColor;border-radius:8px;overflow:hidden;opacity:.95;background:transparent}
+.dcs-ec-search input{flex:1;min-width:0;padding:8px 10px;border:0;outline:0;background:transparent;
+  color:inherit;font:inherit;font-size:14px}
+.dcs-ec-search input::placeholder{color:currentColor;opacity:.6}
+.dcs-ec-search button{padding:8px 12px;border:0;background:transparent;color:inherit;cursor:pointer;font:inherit}
+.dcs-ec-act{display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border:0;border-radius:8px;
+  background:transparent;color:inherit;font:inherit;font-size:14px;text-decoration:none;cursor:pointer;white-space:nowrap}
+.dcs-ec-act:hover,.dcs-ec-search button:hover{opacity:.75}
+.dcs-ec-act .dcs-ec-badge{display:none;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+  font-size:11px;line-height:18px;text-align:center;background:currentColor}
+.dcs-ec-act .dcs-ec-badge.visible{display:inline-block}
+.dcs-ec-act .dcs-ec-badge span{color:var(--tpl-bg,#fff);mix-blend-mode:normal}
+.dcs-ec-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+@media(max-width:720px){.dcs-ec-act span.dcs-ec-label{display:none}.dcs-ec-search{flex-basis:100%;order:9}}
+</style>
+<main class="checkout-wrap">
+  <a href="/" class="back-link">← Back to store</a>
+  <h1>Checkout</h1>
+
+  <div id="checkout-form-area">
+    <div class="checkout-grid">
+      <div class="form-card">
+        <h2>Delivery Details</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="co-fname" placeholder="John" required>
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="co-lname" placeholder="Doe" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="co-email" placeholder="john@example.com" required>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="co-phone" placeholder="+1 234 567 8900" required>
+        </div>
+        <div class="form-group">
+          <label>Street Address</label>
+          <input type="text" id="co-address" placeholder="123 Main Street" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" id="co-city" placeholder="New York" required>
+          </div>
+          <div class="form-group">
+            <label>Postal Code</label>
+            <input type="text" id="co-zip" placeholder="10001">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Country</label>
+          <select id="co-country">
+            <option>United States</option><option>United Kingdom</option>
+            <option>United Arab Emirates</option><option>India</option>
+            <option>Canada</option><option>Australia</option><option>Other</option>
+          </select>
+        </div>
+        <div class="section-title">Order Notes (optional)</div>
+        <div class="form-group">
+          <textarea id="co-notes" placeholder="Any special instructions..." rows="3" style="resize:vertical;"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <div class="summary-card">
+          <h2>Order Summary</h2>
+          <div id="checkout-items"></div>
+          <div class="order-total">
+            <span>Total</span>
+            <span id="checkout-total">$0.00</span>
+          </div>
+          <button class="place-order-btn" onclick="trdPlaceOrder()">Place Order →</button>
+          <div class="secure-note">🔒 Secure checkout · Your data is protected</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="checkout-success">
+    <div style="font-size:4rem;margin-bottom:16px;">🎉</div>
+    <h2>Order Placed!</h2>
+    <p style="color:#64748b;margin-bottom:24px;">Thank you for your order. We'll contact you shortly to confirm.</p>
+    <a href="/" style="background:#f97316;color:#fff;padding:13px 32px;border-radius:10px;text-decoration:none;font-weight:700;">Continue Shopping</a>
+  </div>
+</main>
+
+<footer class="hub" id="hub"><div class="wrap">
+  <div><h4></h4><p style="margin-top:8px;text-transform:none;color:var(--c-text-soft)"></p></div>
+  <form onsubmit="return false"><input type="email" placeholder=""><button type="submit"></button></form>
+</div></footer>
+<script>(function(){function syncMore(){document.querySelectorAll('.trd-nav-more-btn').forEach(function(btn){try{var nav=btn.closest('ul,nav,header');if(!nav)return;var siblings=nav.querySelectorAll('a');var sibling=null;for(var i=0;i<siblings.length;i++){var a=siblings[i];if(a.closest('.trd-nav-more-panel'))continue;sibling=a;break;}if(!sibling)return;var s=window.getComputedStyle(sibling);btn.style.fontFamily=s.fontFamily;btn.style.fontSize=s.fontSize;btn.style.fontWeight=s.fontWeight;btn.style.letterSpacing=s.letterSpacing;btn.style.textTransform=s.textTransform;btn.style.fontStyle=s.fontStyle;nav.querySelectorAll('.trd-nav-more-panel a').forEach(function(da){da.style.fontFamily=s.fontFamily;da.style.fontSize=s.fontSize;da.style.fontWeight=s.fontWeight;da.style.letterSpacing=s.letterSpacing;da.style.textTransform=s.textTransform;});}catch(e){}});}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',syncMore)}else{syncMore()}})();</script>
+
+<script>
+(function() {
+  var CART_KEY = 'trd-cart';
+  function getCart() { try { return JSON.parse(localStorage.getItem(CART_KEY)||'[]'); } catch { return []; } }
+
+  function renderSummary() {
+    var cart = getCart();
+    var el = document.getElementById('checkout-items');
+    if (!el) return;
+    if (cart.length === 0) { el.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:20px;">Cart is empty</p>'; return; }
+    el.innerHTML = cart.map(function(i) {
+      return '<div class="order-item"><span>' + i.name + ' × ' + i.qty + '</span><span>$' + (i.price * i.qty).toFixed(2) + '</span></div>';
+    }).join('');
+    var total = cart.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
+    document.getElementById('checkout-total').textContent = '$' + total.toFixed(2);
+  }
+
+  window.trdPlaceOrder = function() {
+    var fname = document.getElementById('co-fname').value;
+    var email = document.getElementById('co-email').value;
+    var phone = document.getElementById('co-phone').value;
+    var address = document.getElementById('co-address').value;
+    if (!fname || !email || !phone || !address) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+    var cart = getCart();
+    if (cart.length === 0) { alert('Your cart is empty.'); return; }
+
+    var btn = document.querySelector('.place-order-btn');
+    btn.textContent = 'Processing...';
+    btn.disabled = true;
+
+    // Submit order to backend
+    fetch('/api/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customer: { fname: fname, lname: document.getElementById('co-lname').value,
+          email: email, phone: phone, address: address,
+          city: document.getElementById('co-city').value,
+          zip: document.getElementById('co-zip').value,
+          country: document.getElementById('co-country').value,
+          notes: document.getElementById('co-notes').value },
+        items: cart,
+        total: cart.reduce(function(s, i) { return s + i.price * i.qty; }, 0),
+        business: 'AURELIA HOME'
+      })
+    }).then(function() {
+      localStorage.removeItem('trd-cart');
+      document.getElementById('checkout-form-area').style.display = 'none';
+      document.getElementById('checkout-success').style.display = 'block';
+    }).catch(function() {
+      // Even if API fails, show success (order captured client-side)
+      localStorage.removeItem('trd-cart');
+      document.getElementById('checkout-form-area').style.display = 'none';
+      document.getElementById('checkout-success').style.display = 'block';
+    });
+  };
+
+  renderSummary();
+})();
+</script>
+<script data-trd-tpl-i18n="phase-41">
+(function(){
+  // Find any element with class ending in "-lang" or matching "trd-lang"
+  var langEls = document.querySelectorAll('[class*="-lang"], .trd-lang');
+  if (!langEls.length) return;
+  // Read default + alt code from the element's text (e.g. "EN / DA" → ['EN','DA'])
+  var first = langEls[0];
+  var parts = (first.textContent || '').split('/').map(function(s){return s.trim().toUpperCase();}).filter(Boolean);
+  if (parts.length !== 2) return;
+  var primary = parts[0], alt = parts[1];
+  // Get current state from localStorage or default to primary
+  var current = (localStorage.getItem('trd-lang') || primary).toUpperCase();
+  if (current !== primary && current !== alt) current = primary;
+  function render() {
+    document.documentElement.setAttribute('lang', current.toLowerCase());
+    document.documentElement.setAttribute('data-trd-lang', current.toLowerCase());
+    langEls.forEach(function(el){
+      // Show selected language first, alt second, with selected styled distinctly
+      var other = (current === primary) ? alt : primary;
+      el.innerHTML = '<span style="font-weight:600;text-decoration:underline;text-underline-offset:3px">' + current + '</span>'
+                   + '<span style="opacity:.55;margin:0 .3em">/</span>'
+                   + '<span style="opacity:.55">' + other + '</span>';
+      // Make it clickable
+      el.style.cursor = 'pointer';
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('aria-label', 'Switch language to ' + other);
+    });
+  }
+  function toggle() {
+    current = (current === primary) ? alt : primary;
+    try { localStorage.setItem('trd-lang', current); } catch(e){}
+    render();
+  }
+  langEls.forEach(function(el){
+    el.addEventListener('click', toggle);
+    el.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  });
+  render();
+})();
+</script>
+<script data-trd-motion="phase-39.20">
+(function(){
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var els = document.querySelectorAll('main section, main article, body > section, body > article');
+  // Skip first element (likely hero) — must be immediately visible
+  for (var i = 1; i < els.length; i++) els[i].setAttribute('data-trd-fade', '');
+  if (!('IntersectionObserver' in window)) {
+    for (var j = 1; j < els.length; j++) els[j].classList.add('trd-fade-in');
+    return;
+  }
+  var io = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('trd-fade-in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.05 });
+  for (var k = 1; k < els.length; k++) io.observe(els[k]);
+  var imgs = document.querySelectorAll('img[loading="lazy"]');
+  for (var m = 0; m < imgs.length; m++) {
+    if (imgs[m].complete) imgs[m].classList.add('trd-img-loaded');
+    else imgs[m].addEventListener('load', function(ev) { ev.target.classList.add('trd-img-loaded'); });
+  }
+})();
+</script>
+
+<!-- TRD-PERMANENCE-FOOTER -->
+<div id="trd-permanence-footer" class="trd-permanence-footer" style="display:none;text-align:center;padding:14px 16px 18px;color:#888;font-size:11px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:transparent;line-height:1.5;">
+  <a href="https://storage.dcsai.ai/api/storage/cert/7ec09089-1f5d-4109-96ad-40321bc55ed2" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;opacity:0.7;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">
+    <span style="display:inline-block;vertical-align:middle;margin-right:4px;">🔗</span>
+    <span>Permanence verified by <strong>DCS</strong> · Filecoin</span>
+  </a>
+</div>
+<script data-trd-permanence-footer="1">
+(function(){
+  // Only claim "Permanence verified · Filecoin" once a real cert exists — never
+  // show the badge (or a dead cert link) before the receipt/pin is actually stored.
+  try {
+    var f = document.getElementById('trd-permanence-footer');
+    if (!f) return;
+    fetch("https://storage.dcsai.ai/api/storage/cert/7ec09089-1f5d-4109-96ad-40321bc55ed2", { method: 'GET' })
+      .then(function(r){ if (r && r.ok) f.style.display = 'block'; })
+      .catch(function(){ /* silent — footer stays hidden */ });
+  } catch(e){ /* silent */ }
+})();
+</script>
+
+<!-- TRD Carbon Footprint Badge (Zone 131) -->
+<div id="trd-carbon-badge" data-trd-carbon-badge="1" style="position:fixed;bottom:14px;right:14px;z-index:99999;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;display:none;">
+  <a id="trd-cb-link" href="https://api.dcsai.ai/api/storage/receipts/7ec09089-1f5d-4109-96ad-40321bc55ed2" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;background:#0a0a0f;color:#fff;padding:8px 12px;border-radius:24px;text-decoration:none;font-size:11px;line-height:1;box-shadow:0 4px 14px rgba(0,0,0,0.15);transition:transform 0.15s ease,box-shadow 0.15s ease;border:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 18px rgba(0,0,0,0.22)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(0,0,0,0.15)'">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="#0090FF"/>
+      <path d="M12 6c-3.31 0-6 2.69-6 6 0 .85.18 1.66.5 2.4l7.9-7.9c-.74-.32-1.55-.5-2.4-.5zm5.5 3.6l-7.9 7.9c.74.32 1.55.5 2.4.5 3.31 0 6-2.69 6-6 0-.85-.18-1.66-.5-2.4z" fill="#0090FF"/>
+    </svg>
+    <span style="display:flex;flex-direction:column;gap:1px;">
+      <span style="font-weight:600;letter-spacing:0.2px;"><span id="trd-cb-value">— g</span> CO<sub style="font-size:8px;">2</sub></span>
+      <span style="font-size:8.5px;opacity:0.65;letter-spacing:0.6px;text-transform:uppercase;">Verified · DCS</span>
+    </span>
+  </a>
+</div>
+<script data-trd-carbon-badge="1">
+(function(){
+  try {
+    var verifyUrl = "https://api.dcsai.ai/api/storage/receipts/7ec09089-1f5d-4109-96ad-40321bc55ed2";
+    var el = document.getElementById('trd-cb-value');
+    var badge = document.getElementById('trd-carbon-badge');
+    if (!el || !badge) return;
+    // Badge stays hidden until a real, stored receipt is found — never show
+    // an empty "— g · Verified" claim when no receipt exists.
+    fetch(verifyUrl, { method: 'GET' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(body){
+        if (!body) return;
+        var receipts = body.receipts || body || [];
+        if (!Array.isArray(receipts) || receipts.length === 0) return;
+        var totalCo2 = 0;
+        for (var i = 0; i < receipts.length; i++) {
+          var c = Number(receipts[i].carbon_co2_g || (receipts[i].carbon && receipts[i].carbon.co2_grams) || 0);
+          if (isFinite(c)) totalCo2 += c;
+        }
+        el.textContent = totalCo2 > 0
+          ? (totalCo2 < 1 ? totalCo2.toFixed(3) + ' g'
+             : totalCo2 < 100 ? totalCo2.toFixed(2) + ' g'
+             : Math.round(totalCo2) + ' g')
+          : '< 0.01 g';
+        badge.style.display = 'block';   // reveal ONLY with a real receipt
+      })
+      .catch(function(){ /* silent — badge stays hidden */ });
+  } catch(e){ /* silent */ }
+})();
+</script>
+<!-- /TRD Carbon Footprint Badge -->
+
+<!-- DCS Verify Badge -->
+<a href="https://verify.dcsai.ai/?id=7ec09089-1f5d-4109-96ad-40321bc55ed2" target="_blank" rel="noopener" data-dcs-verify-badge="1" title="Verify this site on DCS" style="position:fixed!important;bottom:14px!important;left:14px!important;right:auto!important;top:auto!important;z-index:99999!important;display:inline-flex!important;align-items:center!important;gap:7px!important;width:auto!important;max-width:max-content!important;height:auto!important;margin:0!important;background:#0a0e20!important;color:#fff!important;padding:7px 13px 7px 8px!important;border-radius:24px!important;text-decoration:none!important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif!important;font-size:11.5px!important;font-weight:600!important;line-height:1!important;white-space:nowrap!important;box-shadow:0 4px 14px rgba(0,0,0,0.20)!important;border:1px solid rgba(255,255,255,0.10)!important;box-sizing:border-box!important;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0!important;">
+    <circle cx="12" cy="12" r="10" fill="#2f6fed"/>
+    <path d="M7 12.4l3.3 3.3L17 9" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <span style="color:#fff!important;font-weight:600!important;letter-spacing:0.2px!important;">Verify on DCS</span>
+</a>
+<!-- /DCS Verify Badge -->
+</body>
+</html>

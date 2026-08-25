@@ -1,0 +1,54 @@
+{
+  "brand": {
+    "name": "AURELIA HOME",
+    "tagline": "Elevated living, thoughtfully made",
+    "industry": "ecommerce",
+    "tone": "luxurious"
+  },
+  "archetype": "MARKETPLACE",
+  "design_tokens": {
+    "font_serif": "'Cormorant Garamond', 'Playfair Display', Georgia, serif",
+    "font_sans": "'Inter', system-ui, -apple-system, sans-serif",
+    "color_bg": "#FAF9F6",
+    "color_surface": "#F5F3EF",
+    "color_text_primary": "#1F1D1B",
+    "color_text_secondary": "#6B6560",
+    "color_accent": "#8B6914",
+    "color_border": "#E5E1DA",
+    "color_header_bg": "#FFFFFF",
+    "color_footer_bg": "#241F1B",
+    "radius_sm": "2px",
+    "radius_md": "6px",
+    "radius_lg": "14px",
+    "shadow_sm": "0 1px 2px rgba(31,29,27,0.05)",
+    "shadow_md": "0 8px 28px rgba(31,29,27,0.08)",
+    "max_content_width": "1400px"
+  },
+  "pages_built": [
+    "index","shop-all",
+    "living-room","bedroom","dining","lighting","home-decor","kitchen-dining-accessories","bedding","storage-organization","outdoor-living","gifts",
+    "verona-lounge-chair","milano-three-seater-sofa","luna-coffee-table","oslo-side-table","siena-accent-chair","arden-floor-lamp","solis-table-lamp","nova-pendant-light","maison-ceramic-vase","terra-decorative-bowl","aurora-wall-mirror","forma-wall-art","haven-queen-bed","cloud-bedside-table","alba-dresser","noma-dining-table","elise-dining-chair","atelier-serveware-set","lumi-glassware-set","casa-dinnerware-collection","pure-linen-bedding-set","serenity-throw-blanket","nordic-storage-basket","grove-outdoor-chair",
+    "new-arrivals","best-sellers","minimal-collection","warm-living-collection","gifts-under-100",
+    "about","design-philosophy","materials-craftsmanship","journal","styling-guide","room-inspiration",
+    "contact","faq","shipping-delivery","returns-refunds","privacy-policy","terms-conditions"
+  ],
+  "header_nav": [
+    { "label": "Shop", "href": "/shop-all.html" },
+    { "label": "New Arrivals", "href": "/new-arrivals.html" },
+    { "label": "Best Sellers", "href": "/best-sellers.html" },
+    { "label": "Collections", "href": "/minimal-collection.html" },
+    { "label": "Inspiration", "href": "/room-inspiration.html" },
+    { "label": "About", "href": "/about.html" }
+  ],
+  "footer_links": {
+    "section_1_title": "Shop",
+    "section_1_links": [
+      { "label": "Shop All", "href": "/shop-all.html" },
+      { "label": "New Arrivals", "href": "/new-arrivals.html" },
+      { "label": "Best Sellers", "href": "/best-sellers.html" },
+      { "label": "Gifts", "href": "/gifts.html" }
+    ],
+    "section_2_title": "Categories",
+    "section_2_links": [
+      { "label": "Living Room", "href": "/living-room.html" },
+      { "label": "Bedro
