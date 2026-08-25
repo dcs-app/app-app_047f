@@ -1,0 +1,78 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline — AURELIA HOME</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;min-height:100vh;display:flex;flex-direction:column;background:#0f172a;color:#e2e8f0;text-align:center}.off-hd,.off-ft{padding:18px 24px;font-size:14px;opacity:.75}.off-ft{border-top:1px solid #1e293b}main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;max-width:420px;margin:0 auto;padding:24px}h1{font-size:22px;margin:0 0 10px}p{opacity:.8;line-height:1.5;margin:0 0 20px}button{padding:10px 22px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:15px;cursor:pointer}</style></head><body><header class="off-hd">AURELIA HOME</header><main><h1>You're offline</h1><p>AURELIA HOME isn't reachable right now. Check your connection and try again.</p><button onclick="location.reload()">Retry</button></main><footer class="off-ft"><p>&copy; 2026 AURELIA HOME</p></footer>
+<!-- TRD-PERMANENCE-FOOTER -->
+<div id="trd-permanence-footer" class="trd-permanence-footer" style="display:none;text-align:center;padding:14px 16px 18px;color:#888;font-size:11px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:transparent;line-height:1.5;">
+  <a href="https://storage.dcsai.ai/api/storage/cert/7ec09089-1f5d-4109-96ad-40321bc55ed2" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;opacity:0.7;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">
+    <span style="display:inline-block;vertical-align:middle;margin-right:4px;">🔗</span>
+    <span>Permanence verified by <strong>DCS</strong> · Filecoin</span>
+  </a>
+</div>
+<script data-trd-permanence-footer="1">
+(function(){
+  // Only claim "Permanence verified · Filecoin" once a real cert exists — never
+  // show the badge (or a dead cert link) before the receipt/pin is actually stored.
+  try {
+    var f = document.getElementById('trd-permanence-footer');
+    if (!f) return;
+    fetch("https://storage.dcsai.ai/api/storage/cert/7ec09089-1f5d-4109-96ad-40321bc55ed2", { method: 'GET' })
+      .then(function(r){ if (r && r.ok) f.style.display = 'block'; })
+      .catch(function(){ /* silent — footer stays hidden */ });
+  } catch(e){ /* silent */ }
+})();
+</script>
+
+<!-- TRD Carbon Footprint Badge (Zone 131) -->
+<div id="trd-carbon-badge" data-trd-carbon-badge="1" style="position:fixed;bottom:14px;right:14px;z-index:99999;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;display:none;">
+  <a id="trd-cb-link" href="https://api.dcsai.ai/api/storage/receipts/7ec09089-1f5d-4109-96ad-40321bc55ed2" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;background:#0a0a0f;color:#fff;padding:8px 12px;border-radius:24px;text-decoration:none;font-size:11px;line-height:1;box-shadow:0 4px 14px rgba(0,0,0,0.15);transition:transform 0.15s ease,box-shadow 0.15s ease;border:1px solid rgba(255,255,255,0.08);" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 18px rgba(0,0,0,0.22)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(0,0,0,0.15)'">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="#0090FF"/>
+      <path d="M12 6c-3.31 0-6 2.69-6 6 0 .85.18 1.66.5 2.4l7.9-7.9c-.74-.32-1.55-.5-2.4-.5zm5.5 3.6l-7.9 7.9c.74.32 1.55.5 2.4.5 3.31 0 6-2.69 6-6 0-.85-.18-1.66-.5-2.4z" fill="#0090FF"/>
+    </svg>
+    <span style="display:flex;flex-direction:column;gap:1px;">
+      <span style="font-weight:600;letter-spacing:0.2px;"><span id="trd-cb-value">— g</span> CO<sub style="font-size:8px;">2</sub></span>
+      <span style="font-size:8.5px;opacity:0.65;letter-spacing:0.6px;text-transform:uppercase;">Verified · DCS</span>
+    </span>
+  </a>
+</div>
+<script data-trd-carbon-badge="1">
+(function(){
+  try {
+    var verifyUrl = "https://api.dcsai.ai/api/storage/receipts/7ec09089-1f5d-4109-96ad-40321bc55ed2";
+    var el = document.getElementById('trd-cb-value');
+    var badge = document.getElementById('trd-carbon-badge');
+    if (!el || !badge) return;
+    // Badge stays hidden until a real, stored receipt is found — never show
+    // an empty "— g · Verified" claim when no receipt exists.
+    fetch(verifyUrl, { method: 'GET' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(body){
+        if (!body) return;
+        var receipts = body.receipts || body || [];
+        if (!Array.isArray(receipts) || receipts.length === 0) return;
+        var totalCo2 = 0;
+        for (var i = 0; i < receipts.length; i++) {
+          var c = Number(receipts[i].carbon_co2_g || (receipts[i].carbon && receipts[i].carbon.co2_grams) || 0);
+          if (isFinite(c)) totalCo2 += c;
+        }
+        el.textContent = totalCo2 > 0
+          ? (totalCo2 < 1 ? totalCo2.toFixed(3) + ' g'
+             : totalCo2 < 100 ? totalCo2.toFixed(2) + ' g'
+             : Math.round(totalCo2) + ' g')
+          : '< 0.01 g';
+        badge.style.display = 'block';   // reveal ONLY with a real receipt
+      })
+      .catch(function(){ /* silent — badge stays hidden */ });
+  } catch(e){ /* silent */ }
+})();
+</script>
+<!-- /TRD Carbon Footprint Badge -->
+
+<!-- DCS Verify Badge -->
+<a href="https://verify.dcsai.ai/?id=7ec09089-1f5d-4109-96ad-40321bc55ed2" target="_blank" rel="noopener" data-dcs-verify-badge="1" title="Verify this site on DCS" style="position:fixed!important;bottom:14px!important;left:14px!important;right:auto!important;top:auto!important;z-index:99999!important;display:inline-flex!important;align-items:center!important;gap:7px!important;width:auto!important;max-width:max-content!important;height:auto!important;margin:0!important;background:#0a0e20!important;color:#fff!important;padding:7px 13px 7px 8px!important;border-radius:24px!important;text-decoration:none!important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif!important;font-size:11.5px!important;font-weight:600!important;line-height:1!important;white-space:nowrap!important;box-shadow:0 4px 14px rgba(0,0,0,0.20)!important;border:1px solid rgba(255,255,255,0.10)!important;box-sizing:border-box!important;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0!important;">
+    <circle cx="12" cy="12" r="10" fill="#2f6fed"/>
+    <path d="M7 12.4l3.3 3.3L17 9" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <span style="color:#fff!important;font-weight:600!important;letter-spacing:0.2px!important;">Verify on DCS</span>
+</a>
+<!-- /DCS Verify Badge -->
+</body></html>
