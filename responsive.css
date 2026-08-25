@@ -1,0 +1,97 @@
+/*  Responsive utilities for Aurelia Home static pages
+    Add this file (or paste its content) into every page’s <style> block
+    to ensure fluid layouts, touch‑friendly targets, and no horizontal scroll.
+*/
+
+/* 1. Fluid grid – replace any fixed width containers */
+.container {
+  width: 100%;
+  max-width: var(--max-content-width, 1400px);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* 2. Responsive images */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 3. Typography scaling */
+html {
+  font-size: 16px;
+}
+@media (max-width: 768px) {
+  html { font-size: 15px; }
+}
+@media (max-width: 375px) {
+  html { font-size: 14px; }
+}
+
+/* 4. Touch‑friendly tap targets */
+a, button, .btn {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 5. Prevent horizontal overflow */
+body {
+  overflow-x: hidden;
+}
+
+/* 6. Header – sticky on mobile */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--color-header-bg, #fff);
+}
+
+/* 7. Footer – keep four columns on larger screens, stack on small */
+.footer-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.footer-columns > div {
+  flex: 1 1 200px; /* minimum 200px, grow as needed */
+}
+
+/* 8. Grid of products – responsive */
+.product-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+/* 9. Hero sections – full‑width background with centered text */
+.hero {
+  width: 100%;
+  padding: 4rem 1rem;
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+}
+
+/* 10. Modal / lightbox – ensure full‑screen on mobile */
+.modal {
+  inset: 0;
+  max-width: 100%;
+  max-height: 100%;
+}
+```
+
+**How to apply**
+
+1. **Add the meta snippet** – copy the contents of `meta-and-links.html` into the `<head>` of every HTML file (including `index.html`, all category pages, product pages, etc.).  
+2. **Link the responsive stylesheet** – either:
+   * Create a file named `responsive.css` with the content above and add `<link rel="stylesheet" href="/responsive.css">` after your existing `<style>` block, **or**
+   * Paste the CSS directly into each page’s `<style>` block (the template already uses an inline `<style>` block).  
+3. **Place the PWA assets** – add the `manifest.json`, `service-worker.js`, `sw-register.js`, and the four icon files (`icon-48.png`, `icon-96.png`, `icon-192.png`, `icon-512.png`) into the site’s root (or a dedicated `/icons/` folder as referenced).  
+4. **Deploy** – with the files in place, browsers on mobile devices will recognize the site as a Progressive Web App, cache core assets for offline use, and display correctly across the required breakpoints (320 px, 375 px, 768 px).  
+
+All 53 static pages remain unchanged in structure; the added meta tags, stylesheet, and service‑worker registration make the whole site mobile‑ready and PWA‑capable without altering the existing template architecture.
